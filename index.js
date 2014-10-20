@@ -1,3 +1,4 @@
+var debug = require("debug")("solrjs");
 var request = require('request');
 var EventEmitter = require('events').EventEmitter;
 var util=require("util");
@@ -7,6 +8,7 @@ var when= require("promised-io/promise").when;
 
 var client = module.exports =  declare([EventEmitter], {
 	constructor: function(url, options){
+		debug("Instantiate SOLRjs Client at " + url);
 		this.url = url;
 		this.options = options;
 	},
@@ -16,7 +18,7 @@ var client = module.exports =  declare([EventEmitter], {
 
 //		var qbody = encodeURIComponent(query + "&wt=json");
 		qbody = query += "&wt=json";
-		console.log("Query Body: ", qbody);
+		debug("Query Body: ", qbody);
 
 		var req = request({
 			url: this.url + "/select",
@@ -57,9 +59,9 @@ var client = module.exports =  declare([EventEmitter], {
 		return def.promise;
 	
 	},
-	getSchema: function(id){
+	getSchema: function(){
 		var def = new defer();
-
+		debug("getSchema()", this.url + "/schema?wt=json");
 		var req = request({
 			url: this.url + "/schema",
 			method: "GET",
@@ -69,8 +71,10 @@ var client = module.exports =  declare([EventEmitter], {
 			json: true
 		}, function(error, response, body){
 			if (error) {
+				console.error("Error Retreiving Schema: ", error);
 				return def.reject(error);
 			}
+			debug("Schema Body: ", body);
 			def.resolve(body);
 		});
 	

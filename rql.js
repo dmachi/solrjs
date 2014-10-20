@@ -1,3 +1,4 @@
+var debug = require('debug')('solrjs:rql')
 var request = require('request');
 var EventEmitter = require('events').EventEmitter;
 var util=require("util");
@@ -15,11 +16,11 @@ RQLQuery.prototype.toSolr = function(){
                 },
                 known: ['lt','lte','gt','gte','ne','in','nin','not','mod','all','size','exists','type','elemMatch']
         });
-	console.log("normalized: ", normalized);
+	debug("normalized: ", normalized);
 
 	var sq;
-	console.log("this.name: ", this.name);
-	console.log("this.args: ", this.args);
+	debug("this.name: ", this.name);
+	debug("this.args: ", this.args);
 	var sq=(this.name === "and" ?
 		serializeArgs(this.args, " AND ") :
 		queryToSolr(this))
@@ -75,7 +76,7 @@ RQLQuery.prototype.toSolr = function(){
                 q.sort(so);
         }
 
-        //console.log("Query Limit: ", query.limit, "Infinite: "< query.limit!==Infinity);
+        //debug("Query Limit: ", query.limit, "Infinite: "< query.limit!==Infinity);
 
         if (query && typeof query.limit != 'undefined' && query.limit!==Infinity){
                 if (typeof query.limit=='number'){
@@ -94,7 +95,7 @@ RQLQuery.prototype.toSolr = function(){
         if (options.facets){
                 options.facets.forEach(function(f){
                         q.parameters.push("facet=true");
-                        //console.log("Param: ", "facet." + f.field + "=" + encodeURIComponent(f.value));
+                        //debug("Param: ", "facet." + f.field + "=" + encodeURIComponent(f.value));
                         q.parameters.push("facet." + f.field + "=" + encodeURIComponent(f.value));
 //                      q.facet(f);
                 });
@@ -153,7 +154,7 @@ var encodeValue = exports.encodeValue = function(val) {
 };
 
 function serializeArgs(array, delimiter){
-        console.log("serializeArgs Array: ", array, delimiter);
+        debug("serializeArgs Array: ", array, delimiter);
         var results = [];
         for(var i = 0, l = array.length; i < l; i++){
 		if (array[i]) {
