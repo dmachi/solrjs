@@ -61,7 +61,7 @@ var client = module.exports =  declare([EventEmitter], {
 	},
 	getSchema: function(){
 		var def = new defer();
-		debug("getSchema()", this.url + "/schema?wt=json");
+		// debug("getSchema()", this.url + "/schema?wt=json");
 		var req = request({
 			url: this.url + "/schema",
 			method: "GET",
@@ -74,7 +74,7 @@ var client = module.exports =  declare([EventEmitter], {
 				console.error("Error Retreiving Schema: ", error);
 				return def.reject(error);
 			}
-			debug("Schema Body: ", body);
+			// debug("Schema Body: ", body);
 			def.resolve(body);
 		});
 	

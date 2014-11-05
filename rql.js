@@ -32,7 +32,7 @@ RQLQuery.prototype.toSolr = function(){
 	}
 
 	if (normalized.skip) {
-		sq += "&offset=" + normalized.skip;
+		sq += "&start=" + normalized.skip;
 	}
 
 	if (normalized.select && (normalized.select.length>0)) {
@@ -49,65 +49,7 @@ RQLQuery.prototype.toSolr = function(){
 		}).join(", ");
         }
 
-
-
 	return "&q="+sq;
-/*
-        if (options.qf){
-                processedQ += "&qf="+options.qf;
-        }
-        var q = SolrQuery.q(processedQ||"*:*") ;
-
-        if (options.fq){
-                options.fq.forEach(function(fq){
-                        q.set("fq=" + fq);
-                        //q.fq(fq);
-                });
-        }
-
-
-
-
-        if (query && query.sortObj){
-                var so = {}
-                for (prop in query.sortObj){
-                        so[prop] = (query.sortObj[prop]>0)?"asc":"desc";
-                }
-                q.sort(so);
-        }
-
-        //debug("Query Limit: ", query.limit, "Infinite: "< query.limit!==Infinity);
-
-        if (query && typeof query.limit != 'undefined' && query.limit!==Infinity){
-                if (typeof query.limit=='number'){
-                        q.rows(query.limit);
-                }else{
-                        q.rows(query.limit[0]);
-                }
-        }else{
-                q.rows(99999999);
-        }
-
-        if (query && (query.skip||(query.limit && query.limit[1]))){
-                q.start(query.skip||query.limit[1])
-        }
-
-        if (options.facets){
-                options.facets.forEach(function(f){
-                        q.parameters.push("facet=true");
-                        //debug("Param: ", "facet." + f.field + "=" + encodeURIComponent(f.value));
-                        q.parameters.push("facet." + f.field + "=" + encodeURIComponent(f.value));
-//                      q.facet(f);
-                });
-        }
-        if (options.bf){
-                options.bf.forEach(function(bf){
-                //      q.bf(bf);
-                        q.parameters.push('_query_:"' + bf + '"');
-                });
-        }
-	*/
-
 }
 
 function encodeString(s) {
