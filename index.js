@@ -41,9 +41,22 @@ var client = module.exports =  declare([EventEmitter], {
 
 	get: function(id){
 		var def = new defer();
-
+		var prop = "id";
+		if ((id instanceof Array) && (id.length>0)){
+			if (id.length==1){
+				id = encodeURIComponent(id[0]);
+			}else{
+				prop = "ids";
+				id = id.map(function(i){
+					return encodeURIComponent(i);
+				}).join(",");
+			}
+		}else{
+			id = encodeURIComponent(id);
+		}
+		debug(this.url + "/get?"+prop+"=" + id);
 		var req = request({
-			url: this.url + "/get?id=" + encodeURIComponent(id),
+			url: this.url + "/get?"+prop+"=" + id,
 			method: "GET",
 			headers: {
 				accept: "application/json",

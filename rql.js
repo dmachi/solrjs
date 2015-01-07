@@ -7,15 +7,17 @@ var when= require("promised-io/promise").when;
 var RQLQuery= require("rql/query").Query;
 var parser = require("rql/parser");
 
-RQLQuery.prototype.toSolr = function(){
-        var normalized = this.normalize({
-                primaryKey: '_id',
-                map: {
-                        ge: 'gte',
-                        le: 'lte'
-                },
-                known: ['lt','lte','gt','gte','ne','in','nin','not','mod','all','size','exists','type','elemMatch']
-        });
+RQLQuery.prototype.infinity = 9999999999
+RQLQuery.prototype.toSolr = function(opts){
+	opts=opts||{}
+    var normalized = this.normalize({
+            primaryKey: '_id',
+            map: {
+                    ge: 'gte',
+                    le: 'lte'
+            },
+            known: ['lt','lte','gt','gte','ne','in','nin','not','mod','all','size','exists','type','elemMatch'],
+    });
 	debug("normalized: ", normalized);
 
 	var sq;
@@ -28,7 +30,9 @@ RQLQuery.prototype.toSolr = function(){
 	if (!sq) { sq="*:*"; }
 
 	if (normalized.limit) {
-		sq += "&rows=" + normalized.limit;
+		var l = (normalized.limit===Infinity)?this.infinity:normalized.limit;
+		if (l > opts.maxRequestLimit) { l = opts.maxRequestLimit; }
+		sq += "&rows=" + l;
 	}
 
 	if (normalized.skip) {
@@ -39,7 +43,7 @@ RQLQuery.prototype.toSolr = function(){
 		sq += "&fl=" + normalized.select.join(",");
 	}
 
-        if (normalized.sortObj && normalized.sortObj){
+        if (normalized.sortObj){
                 var so = {}
                 for (prop in normalized.sortObj){
                         so[prop] = (normalized.sortObj[prop]>0)?"asc":"desc";
@@ -49,8 +53,90 @@ RQLQuery.prototype.toSolr = function(){
 		}).join(", ");
         }
 
+	if (normalized.facets && (normalized.facets.length>0)) {
+		sq += "&facet=true"
+		normalized.facets.forEach(function(facet){
+			if (facet instanceof Array){
+				sq += "&facet." + facet[0] + "=" + facet[1];
+			}else{
+				sq += "&facet.field=" + facet;	
+			}	
+		});
+	}
+
 	return "&q="+sq;
 }
+
+RQLQuery.prototype.normalize = function(options){
+        options = options || {};
+        options.primaryKey = options.primaryKey || 'id';
+        options.map = options.map || {};
+        var result = {
+                original: this,
+                sort: [],
+                limit: [Infinity, 0, Infinity],
+                skip: 0,
+                limit: Infinity,
+                select: [],
+                values: false,
+		facets: [],
+		fq: []
+        };
+        var plusMinus = {
+                // [plus, minus]
+                sort: [1, -1],
+                select: [1, 0]
+        };
+        function normal(func, args){
+                // cache some parameters
+                if (func === 'sort' || func === 'select') {
+                        result[func] = args;
+                        var pm = plusMinus[func];
+                        result[func+'Arr'] = result[func].map(function(x){
+                                if (x instanceof Array) x = x.join('.');
+                                var o = {};
+                                var a = /([-+]*)(.+)/.exec(x);
+                                o[a[2]] = pm[(a[1].charAt(0) === '-')*1];
+                                return o;
+                        });
+                        result[func+'Obj'] = {};
+                        result[func].forEach(function(x){
+                                if (x instanceof Array) x = x.join('.');
+                                var a = /([-+]*)(.+)/.exec(x);
+                                result[func+'Obj'][a[2]] = pm[(a[1].charAt(0) === '-')*1];
+                        });
+                } else if (func === 'limit') {
+                        // validate limit() args to be numbers, with sane defaults
+                        var limit = args;
+                        result.skip = +limit[1] || 0;
+                        limit = +limit[0] || 0;
+                        if (options.hardLimit && limit > options.hardLimit)
+                                limit = options.hardLimit;
+                        result.limit = limit;
+                        result.needCount = true;
+                } else if (func === 'values') {
+                        // N.B. values() just signals we want array of what we select()
+                        result.values = true;
+                } else if (func === 'eq') {
+                        // cache primary key equality -- useful to distinguish between .get(id) and .query(query)
+                        var t = typeof args[1];
+                        //if ((args[0] instanceof Array ? args[0][args[0].length-1] : args[0]) === options.primaryKey && ['string','number'].indexOf(t) >= 0) {
+                        if (args[0] === options.primaryKey && ('string' === t || 'number' === t)) {
+                                result.pk = String(args[1]);
+                        }
+                }else if (func == "facet"){
+			result.facets = result.facets.concat(args);	
+		}
+                // cache search conditions
+                //if (options.known[func])
+                // map some functions
+                //if (options.map[func]) {
+                 //       func = options.map[func];
+                //}
+        }
+        this.walk(normal);
+        return result;
+};
 
 function encodeString(s) {
 	if (typeof s === "string") {
@@ -109,13 +195,14 @@ function serializeArgs(array, delimiter){
         return results.join(delimiter);
 }
 
-function queryToSolr(part) {
+function queryToSolr(part,options) {
+	options = options || {}
 	if (part instanceof Array) {
 		return '(' + serializeArgs(part, ",")+')';
 	}
 
 	if (part && part.name && part.args && _handlerMap[part.name]) {
-		return _handlerMap[part.name](part);
+		return _handlerMap[part.name](part,options);
 	}
 
 	return exports.encodeValue(part);
@@ -236,6 +323,7 @@ var handlers = [
 
 		["facet", function(query, options){
 			//var parts = ["facets=true"];
+			
 //			query.args[0].forEach(function(field){
 //					parts.push("facet.field=" + field);
 //			});
