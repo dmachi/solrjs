@@ -1,6 +1,6 @@
 {
   "name": "solrjs",
-  "version": "0.6.1",
+  "version": "0.6.2",
   "description": "SOLR Client for Node",
   "main": "index.js",
   "scripts": {
@@ -9,6 +9,7 @@
   "author": "Dustin Machi <dmachi@dojotoolkit.org>",
   "license": "BSD-2-Clause",
   "dependencies": {
-    "request": ">2.47.0"
+    "request": ">2.47.0",
+    "rql": "*"
   }
 }
