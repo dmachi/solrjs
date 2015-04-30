@@ -1,6 +1,6 @@
 {
   "name": "solrjs",
-  "version": "0.6.3",
+  "version": "0.6.4",
   "description": "SOLR Client for Node",
   "main": "index.js",
   "scripts": {

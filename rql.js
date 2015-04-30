@@ -30,7 +30,7 @@ RQLQuery.prototype.toSolr = function(opts){
 	if (!sq) { sq="*:*"; }
 
 	if (normalized.limit) {
-		var l = (normalized.limit===Infinity)?this.infinity:normalized.limit;
+		var l = (normalized.limit===Infinity)?(opts.defaultLimit||this.infinity):normalized.limit;
 		if (l > opts.maxRequestLimit) { l = opts.maxRequestLimit; }
 		sq += "&rows=" + l;
 	}
@@ -152,8 +152,8 @@ var encodeValue = exports.encodeValue = function(val) {
 	var encoded;
 	if (val === null) val = 'null';
 
-	if (val !== parser.converters["default"]('' + (
-		val.toISOString && val.toISOString() || val.toString()
+	if (val && val !== parser.converters["default"]('' + (
+		(val.toISOString)? val.toISOString():val.toString()
 	))) {
 		var type = typeof val;
 		if(val instanceof RegExp){
