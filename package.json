@@ -9,8 +9,11 @@
   "author": "Dustin Machi <dmachi@dojotoolkit.org>",
   "license": "BSD-2-Clause",
   "dependencies": {
+    "clarinet": "^0.11.0",
+    "debug": "^2.2.0",
+    "dojo-declare": "*",
+    "promised-io": "^0.3.5",
     "request": ">2.47.0",
-    "rql": "*",
-    "dojo-declare": "*"
+    "rql": "*"
   }
 }
