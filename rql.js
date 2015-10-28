@@ -164,7 +164,7 @@ var encodeValue = exports.encodeValue = function(val) {
 			val = encodeString(val.substring(1, i));
 			encoded = true;
 		}
-		if(type === "object"){
+		if(type === "object" && val && val.getTime){
 			type = "epoch";
 			val = val.getTime();
 			encoded = true;
@@ -178,6 +178,9 @@ var encodeValue = exports.encodeValue = function(val) {
 
 	if (!encoded && typeof val === "string") val = encodeString(val);
 
+	if (val && typeof val == 'string') {
+		val = val.replace("%2B","+").replace("+","\\\+");
+	}
 	return val;
 };
 
@@ -250,16 +253,36 @@ var handlers = [
 		["eq", function(query, options){
 			var parts = [query.args[0]]
 			parts.push(queryToSolr(query.args[1],options));
-			return parts.join(":");
+			var val = decodeURIComponent(parts[1]);
+			var field = parts[0];
 
-//			return query.args.join(":");
+			if (val.charAt(0)=='"'){
+				return parts.join(":");
+			}else{
+				var vals = val.split(" ");
+				
+				return vals.map(function(v){
+					return field + ":" + encodeURIComponent(v);
+				}).join(" AND ");
+			}
 		}],
 		["ne", function(query, options){
 			var parts = [query.args[0]]
 			parts.push(queryToSolr(query.args[1],options));
-			return "-" + parts.join(":");
 
-//			return query.args.join(":");
+                        var val = decodeURIComponent(parts[1]);
+                        var field = parts[0];
+
+                        if (val.charAt(0)=='"'){
+                                return "-" + parts.join(":");
+                        }else{
+                                var vals = val.split(/\s+/);
+                                
+                                return vals.map(function(v){
+                                        return "-" + field + ":" + encodeURIComponent(v)
+                                }).join(" AND ");
+                        }
+
 		}],
 	
 		["exists", function(query, options){
