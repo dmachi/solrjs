@@ -64,6 +64,24 @@ RQLQuery.prototype.toSolr = function(opts){
 		});
 	}
 
+	if (normalized.groupings && (normalized.groupings.length>0)) {
+		sq += "&group=true"
+		normalized.groupings.forEach(function(group){
+			if (group instanceof Array){
+				sq += "&group." + group[0] + "=" + group[1];
+			}else{
+				sq += "&group.field=" + group;	
+			}	
+		});
+	}
+
+	if (normalized.json){
+		Object.keys(normalized.json).forEach(function(k){
+			sq += "&json." + k + "=" + normalized.json[k];
+		});
+	}
+
+
 	return "&q="+sq;
 }
 
@@ -80,6 +98,8 @@ RQLQuery.prototype.normalize = function(options){
                 select: [],
                 values: false,
 		facets: [],
+		groupings: [],
+		json: {},
 		fq: []
         };
         var plusMinus = {
@@ -126,7 +146,17 @@ RQLQuery.prototype.normalize = function(options){
                         }
                 }else if (func == "facet"){
 			result.facets = result.facets.concat(args);	
+		} else if (func == "group"){
+			result.groupings= result.groupings.concat(args);	
+		} else if (func == "json"){
+			result.json[args[0]]="";
+			for(var i=1;i<args.length;i++){
+				result.json[args[0]]= result.json[args[0]] + args[i];
+			}
 		}
+
+
+
                 // cache search conditions
                 //if (options.known[func])
                 // map some functions
@@ -343,9 +373,21 @@ var handlers = [
 			options.distinct.push(query.args);
 		}],
 
+		["json", function(query,options){
+			if (!options.json){
+				options.json={}
+			}
+			
+			options.json[query.args[0]] = "";
+
+			for (var i=0; i<query.args.length;i++){
+				options.json[query.args[0]] = 	options.json[query.args[0]] + query.args[i];
+			}
+			
+		}],
 
 		["facet", function(query, options){
-			//var parts = ["facets=true"];
+			//var parts = ["facet=true"];
 			
 //			query.args[0].forEach(function(field){
 //					parts.push("facet.field=" + field);
@@ -383,6 +425,48 @@ var handlers = [
 			}
 			if (!existingFacetProps('limit')){
 				options.facets.push({field: "limit", value: 500});
+			}
+		}],
+
+		["group", function(query, options){
+			//var parts = ["group=true"];
+			
+//			query.args[0].forEach(function(field){
+//					parts.push("group.field=" + field);
+//			});
+//			parts.push("sort=" + query.args[1]);
+			if (!options.groupings){
+				options.groupings=[];
+			}	
+
+			function existingGroupingsProps(tprop){
+				for (i=0; i < options.groupings.length; ++i){
+					if (options.groupings[i]['field'] == tprop){
+						return true;
+					}
+				}
+				return false;
+			}
+			query.args.forEach(function(group){
+				var groupProp = group[0];
+				var groupVal = group[1];
+	
+				if (groupProp == "sort"){
+					var dir =  (groupVal.charAt(0)=="+")?"ASC":"DESC";
+					groupVal = groupVal.substr(1) + " " + dir;
+			
+				}
+				if (groupVal instanceof Array){
+					groupVal = groupVal.join(",");
+				}	
+				var f = {field: groupProp,value: groupVal}
+				options.groupings.push(f);
+			});
+			if (!existingGroupingsProps('mincount')){
+				options.groupings.push({field: "mincount", value: 1});
+			}
+			if (!existingGroupingsProps('limit')){
+				options.groupings.push({field: "limit", value: 500});
 			}
 		}],
 
