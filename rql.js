@@ -171,14 +171,33 @@ RQLQuery.prototype.normalize = function(options){
 function encodeString(s) {
 	if (typeof s === "string") {
 		s = encodeURIComponent(s);
+
 		if (s.match(/[\(\)]/)) {
 			s = s.replace("(","%28").replace(")","%29");
 		};
+
+		s = s.replace(/\%3A/g,":");
+
+		s = s.replace(/\%22/g,'"');
+
+		s = s.replace(/\\+/g,"%2B");
+
+		console.log("REPLACED: ", s);
+	
+		if (s.charAt(0)=='"' && s.charAt(s.length-1)=='"'){
+			console.log("Use quotes here");
+			s = '"' + s.slice(1,s.length-1).replace('"',"%22") + '"'
+		}else{
+			s = s.replace('"',"%22");
+		}	
+
+
 	}
 	return s;
 }
 
 var encodeValue = exports.encodeValue = function(val) {
+	console.log("ENOCDE VALUE: ", val);
 	var encoded;
 	if (val === null) val = 'null';
 
@@ -208,9 +227,13 @@ var encodeValue = exports.encodeValue = function(val) {
 
 	if (!encoded && typeof val === "string") val = encodeString(val);
 
+	/*
 	if (val && typeof val == 'string') {
 		val = val.replace("%2B","+").replace("+","\\\+");
 	}
+	*/
+
+	console.log("ENCODED VAL: ", val);
 	return val;
 };
 
