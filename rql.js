@@ -182,10 +182,10 @@ function encodeString(s) {
 
 		s = s.replace(/\\+/g,"%2B");
 
-		console.log("REPLACED: ", s);
+		//console.log("REPLACED: ", s);
 	
 		if (s.charAt(0)=='"' && s.charAt(s.length-1)=='"'){
-			console.log("Use quotes here");
+			//console.log("Use quotes here");
 			s = '"' + s.slice(1,s.length-1).replace('"',"%22") + '"'
 		}else{
 			s = s.replace('"',"%22");
@@ -197,7 +197,7 @@ function encodeString(s) {
 }
 
 var encodeValue = exports.encodeValue = function(val) {
-	console.log("ENOCDE VALUE: ", val);
+	//console.log("ENOCDE VALUE: ", val);
 	var encoded;
 	if (val === null) val = 'null';
 
@@ -233,7 +233,7 @@ var encodeValue = exports.encodeValue = function(val) {
 	}
 	*/
 
-	console.log("ENCODED VAL: ", val);
+	//console.log("ENCODED VAL: ", val);
 	return val;
 };
 
