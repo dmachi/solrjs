@@ -20,7 +20,7 @@ var client = module.exports =  declare([EventEmitter], {
 		this.options = options;
 	},
 
-	streamChunkSize: 10,
+	streamChunkSize: 200,
 	maxStreamSize:250000,
 	_streamQuery: function(query,stream,callback,currentCount,totalReqLimit,cursorMark){
 
@@ -74,7 +74,7 @@ var client = module.exports =  declare([EventEmitter], {
 
 	            if (data.response && (data.response.numFound < totalReqLimit)){
 
-	            		
+			totalReqLimit = data.response.numFound;	            		
 	            }
 
 	            if (data.nextCursorMark){
@@ -111,7 +111,7 @@ var client = module.exports =  declare([EventEmitter], {
 	                            stream.emit('end');
 	                            callback();
 	                    }else{
-	                          //  console.log("NO DOCS: ",data);
+	                            console.log("NO DOCS: ",data);
 	                            stream.emit('end');
 	                            callback();
 	                    }
