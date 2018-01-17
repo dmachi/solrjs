@@ -359,7 +359,7 @@ var handlers = [
 		}],
 
 		["between", function(query, options){
-			return query.args[0] + ":[" + queyr.args[1] + " TO " + query.args[2] + "]";
+			return query.args[0] + ":[" + query.args[1] + " TO " + query.args[2] + "]";
 		}],
 
 		["field", function(query, options){
