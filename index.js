@@ -18,8 +18,12 @@ var client = module.exports =  declare([EventEmitter], {
 		debug("Instantiate SOLRjs Client at " + url);
 		this.url = url;
 		this.options = options;
+		this.agent = undefined;
 	},
 
+	setAgent = function(agent) {
+		this.agent = agent;
+	},
 	streamChunkSize: 200,
 	maxStreamSize:250000,
 	_streamQuery: function(query,stream,callback,currentCount,totalReqLimit,cursorMark){
@@ -46,6 +50,7 @@ var client = module.exports =  declare([EventEmitter], {
 				accept: "application/json",
 				'content-type':"application/x-www-form-urlencoded"
 			},
+			agent: this.agent,
 			body: qbody,
 			json: true
 	    }, function(err,res,data){
@@ -158,6 +163,7 @@ var client = module.exports =  declare([EventEmitter], {
 				accept: "application/json",
 				'content-type':"application/x-www-form-urlencoded"
 			},
+			agent: this.agent,
 			body: qbody,
 			json: true
 		}, function(error, response, body){
@@ -192,6 +198,7 @@ var client = module.exports =  declare([EventEmitter], {
 			headers: {
 				accept: "application/json",
 			},
+			agent: this.agent,
 			json: true
 		}, function(error, response, body){
 			if (error) {
@@ -212,6 +219,7 @@ var client = module.exports =  declare([EventEmitter], {
 			headers: {
 				accept: "application/json",
 			},
+			agent: this.agent,
 			json: true
 		}, function(error, response, body){
 			if (error) {
