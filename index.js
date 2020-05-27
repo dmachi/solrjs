@@ -21,7 +21,7 @@ var client = module.exports =  declare([EventEmitter], {
 		this.agent = undefined;
 	},
 
-	setAgent = function(agent) {
+	setAgent: function(agent) {
 		this.agent = agent;
 	},
 	streamChunkSize: 200,
